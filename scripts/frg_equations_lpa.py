@@ -14,8 +14,7 @@ from pathlib import Path
 
 import numpy as np
 
-from frg import MarchenkoPastur, get_cfg_defaults, get_logger
-from frg.utils.utils import load_data
+from frg import MarchenkoPastur, get_cfg_defaults, get_logger, load_data
 
 __author__ = "Riccardo Finotello"
 __email__ = "riccardo.finotello@cea.fr"

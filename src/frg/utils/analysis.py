@@ -23,6 +23,34 @@ from PIL import Image
 from frg.distributions.distributions import Distribution, MarchenkoPastur
 
 
+def _ema(x: ArrayLike, y: ArrayLike, win: int) -> tuple[np.ndarray, np.ndarray]:
+    """
+    Exponential movin average (EMA).
+
+    Parameters
+    ----------
+    x : ArrayLike
+        The list of values.
+    win : int
+        The scaling width.
+
+    Returns
+    -------
+    tuple[np.ndarray, lisy[float]]
+        The smoothed list of x and y.
+    """
+    x, y = np.array(x), np.array(y)
+
+    # Window
+    win = np.ones((win,)) / win
+
+    # Convolution
+    new_x = np.convolve(x, win, mode="valid")
+    new_y = np.convolve(y, win, mode="valid")
+
+    return new_x, new_y
+
+
 def compute_roi(
     data: dict[str, Any],
     thresh: float = 0.5,
@@ -516,34 +544,6 @@ def plot_canonical_dimensions(
         plt.savefig(output_dir / f"canonical_dimensions_{suffix}.pdf")
 
 
-def ema(x: ArrayLike, y: ArrayLike, win: int) -> tuple[np.ndarray, np.ndarray]:
-    """
-    Exponential movin average (EMA).
-
-    Parameters
-    ----------
-    x : ArrayLike
-        The list of values.
-    win : int
-        The scaling width.
-
-    Returns
-    -------
-    tuple[np.ndarray, lisy[float]]
-        The smoothed list of x and y.
-    """
-    x, y = np.array(x), np.array(y)
-
-    # Window
-    win = np.ones((win,)) / win
-
-    # Convolution
-    new_x = np.convolve(x, win, mode="valid")
-    new_y = np.convolve(y, win, mode="valid")
-
-    return new_x, new_y
-
-
 def plot_canonical_dimensions_scan(
     x: list[float],
     name: str,
@@ -621,7 +621,7 @@ def plot_canonical_dimensions_scan(
             label=r"$\text{dim}(u_{2})$" if win <= 0 else None,
         )
         if win > 0:
-            new_x, new_dim = ema(x, dimu2, win=win)
+            new_x, new_dim = _ema(x, dimu2, win=win)
             ax.plot(
                 new_x,
                 new_dim,
@@ -638,7 +638,7 @@ def plot_canonical_dimensions_scan(
             label=r"$\text{dim}(u_{4})$" if win <= 0 else None,
         )
         if win > 0:
-            new_x, new_dim = ema(x, dimu4, win=win)
+            new_x, new_dim = _ema(x, dimu4, win=win)
             ax.plot(
                 new_x,
                 new_dim,
@@ -655,7 +655,7 @@ def plot_canonical_dimensions_scan(
             label=r"$\text{dim}(u_{6})$" if win <= 0 else None,
         )
         if win > 0:
-            new_x, new_dim = ema(x, dimu6, win=win)
+            new_x, new_dim = _ema(x, dimu6, win=win)
             ax.plot(
                 new_x,
                 new_dim,

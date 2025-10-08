@@ -12,7 +12,7 @@ import json
 import sys
 from pathlib import Path
 
-from frg.utils.utils import get_cfg_defaults, get_logger, load_data
+from frg import get_cfg_defaults, get_logger, load_data
 
 __author__ = "Riccardo Finotello"
 __email__ = "riccardo.finotello@cea.fr"

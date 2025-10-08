@@ -16,7 +16,7 @@ from pathlib import Path
 import numpy as np
 from scipy.stats import qmc
 
-from frg.utils.utils import get_cfg_defaults, get_logger
+from frg import get_cfg_defaults, get_logger
 
 __author__ = "Riccardo Finotello"
 __email__ = "riccardo.finotello@cea.fr"
