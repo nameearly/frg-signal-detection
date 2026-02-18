@@ -30,46 +30,31 @@ The main statements of this paper are essentially numeric, and their reproducibi
 ## Requirements
 
 The framework has been developed under *Python* 3.12.7.
-It is recommended to create an environment using your preferred package manager.
-For instance, using `conda`:
-
-```bash
-conda create -n frg python=3.12
-conda activate frg
-```
+It is recommended to use [uv](https://github.com/astral-sh/uv) for package management.
 
 ### Production Version
 
-You can directly install the package using
+You can directly install the package using `uv`:
 
 ```bash
-pip install git+https://github.com/thesfinox/frg-signal-detection.git
-```
-
-or you can clone the repository
-
-```bash
-git clone https://github.com/thesfinox/frg-signal-detection.git
-```
-
-and install the package
-
-```bash
-pip install .
+uv tool install git+https://github.com/thesfinox/frg-signal-detection.git
 ```
 
 ### Development Version
 
-You can install the required packages using the following command:
+To develop the package, you can clone the repository and sync the environment:
 
 ```bash
-pip install -r requirements.txt
+git clone https://github.com/thesfinox/frg-signal-detection.git
+cd frg-signal-detection
+uv sync
 ```
 
-You can then install the package in editable mode using:
+To install the dependencies for documentation or testing, you can use the optional groups:
 
 ```bash
-pip install -e .
+uv sync --group docs
+uv sync --group tests
 ```
 
 ## Contributing
@@ -78,20 +63,13 @@ Take a look at the [CONTRIBUTING](CONTRIBUTING.md) file for more information.
 
 ## Documentation
 
-In order to compile the documentation, you need to install the `sphinx` package, and its theme `sphinx_rtd_theme`:
+To compile the documentation, you can use `uv` to install the dependencies and run the build process:
 
 ```bash
-pip install sphinx sphinx_rtd_theme
+uv run --group docs make -C docs html
 ```
 
-Then, you can compile it by running:
-
-```bash
-cd docs
-make html
-```
-
-The documentation will be available in the `docs/_build/html` folder.
+The documentation will be available in the `docs/build/html` folder.
 Simply open the `index.html` file in your browser to see it.
 
 ## Configuration Files
@@ -137,17 +115,24 @@ Allowed entries are:
 
 ## Usage
 
-While most of the code is contained in the `frg` package (see the [`src`](./src) folder), several scripts are available for different tasks in the `scripts` folder.
+If you installed the package in production mode, you first need to initialize the workspace:
+
+```bash
+frg-init
+```
+
+This will copy the default configuration files and scripts to your current directory.
+You can then run the various tools using their CLI entry points.
 
 > **NOTE**
 > The full list of options and arguments allowed by the scripts can be retrieved by running the script with the `--help` argument from the command line.
 
 ## Generation of Multiple Configuration Files
 
-Starting from a base configuration file, multiple derived configurations can be automatically generated using the `generate_config.py` script:
+Starting from a base configuration file, multiple derived configurations can be automatically generated using the `frg-generate-config` command:
 
 ```bash
-./scripts/generate_config.py \
+frg-generate-config \
     --config /path/to/base_config.yaml \
     --params /path/to/parameters.json \
     --n_samples <number_of_files_to_generate> \
@@ -178,10 +163,10 @@ will act on the parameters `POT.U2_INIT`, `POT.U4_INIT` and `POT.U6_INIT` in the
 
 ### Computation of the Canonical Dimensions
 
-The file `canonical_dimensions.py` can be used to compute the canonical dimensions of the distribution of singular values:
+The command `frg-canonical-dimensions` can be used to compute the canonical dimensions of the distribution of singular values:
 
 ```bash
-./scripts/canonical_dimensions.py \
+frg-canonical-dimensions \
     --config /path/to/config.yaml
 ```
 
@@ -190,10 +175,10 @@ The file `canonical_dimensions.py` can be used to compute the canonical dimensio
 
 ### Computation of the FRG Equations
 
-The file `frg_equations.py` can be used to compute the functional renormalization group equations:
+The command `frg-equations` can be used to compute the functional renormalization group equations:
 
 ```bash
-./scripts/frg_equations.py \
+frg-equations \
     --config /path/to/config.yaml
 ```
 
@@ -202,10 +187,10 @@ The file `frg_equations.py` can be used to compute the functional renormalizatio
 
 ### Computation of the FRG Equation in Non-trivial Vacuum
 
-The file `frg_equations_lpa.py` can be used to compute the functional renormalization group equations in the Local Potential Approximation (LPA) with an expansion around a non trivial vacuum:
+The command `frg-equations-lpa` can be used to compute the functional renormalization group equations in the Local Potential Approximation (LPA) with an expansion around a non trivial vacuum:
 
 ```bash
-./scripts/frg_equations_lpa.py \
+frg-equations-lpa \
     --config /path/to/config.yaml
 ```
 
@@ -214,9 +199,9 @@ The file `frg_equations_lpa.py` can be used to compute the functional renormaliz
 
 ### Analysis of the Eigenvector Components
 
-The script `evc_distribution.py` computes the distribution of the eigenvectors of the correlations:
+The command `frg-evc-distribution` computes the distribution of the eigenvectors of the correlations:
 
 ```bash
-./scripts/evc_distribution.py \
+frg-evc-distribution \
     --config /path/to/config.yaml
 ```

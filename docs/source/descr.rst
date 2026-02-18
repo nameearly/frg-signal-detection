@@ -23,52 +23,46 @@ Installation
 ============
 
 The framework has been developed under _Python_ 3.12.7.
-It is recommended to create an environment using your preferred package manager.
-For instance, using ``conda``:
-
-.. code:: bash
-
-   conda create -n frg python=3.12
-   conda activate frg
+It is recommended to use `uv <https://github.com/astral-sh/uv>`_ for package management.
 
 Production Version
 ------------------
 
-You can directly install the package using
+You can directly install the package using ``uv``:
 
 .. code:: bash
 
-   pip install git+https://github.com/thesfinox/frg-signal-detection.git
-
-or you can clone the repository
-
-.. code:: bash
-
-   git clone https://github.com/thesfinox/frg-signal-detection.git
-
-and install the package
-
-.. code:: bash
-
-   pip install .
+   uv tool install git+https://github.com/thesfinox/frg-signal-detection.git
 
 Development Version
 -------------------
 
-You can install the required packages using the following command:
+To develop the package, you can clone the repository and sync the environment:
 
 .. code:: bash
 
-   pip install -r requirements.txt
+   git clone https://github.com/thesfinox/frg-signal-detection.git
+   cd frg-signal-detection
+   uv sync
 
-You can then install the package in editable mode using:
+To install the dependencies for documentation or testing, you can use the optional groups:
 
 .. code:: bash
 
-   pip install -e .
+   uv sync --group docs
+   uv sync --group tests
 
 Usage
 =====
+
+If you installed the package in production mode, you first need to initialize the workspace:
+
+.. code:: bash
+
+   frg-init
+
+This will copy the default configuration files and scripts to your current directory.
+You can then run the various tools using their CLI entry points.
 
 The package relies on the definition of configuration files based on the `yacs <https://github.com/rbgirshick/yacs>`_ system, following this template:
 
@@ -110,11 +104,11 @@ Allowed entries are:
 Generation of Multiple Configuration Files
 ------------------------------------------
 
-Starting from a base configuration file, multiple derived configurations can be automatically generated using the ``generate_config.py`` script:
+Starting from a base configuration file, multiple derived configurations can be automatically generated using the ``frg-generate-config`` command:
 
 .. code:: bash
 
-   ./scripts/generate_config.py \
+   frg-generate-config \
       --config /path/to/base_config.yaml \
       --params /path/to/parameters.json \
       --n_samples <number_of_files_to_generate> \
@@ -146,11 +140,11 @@ will act on the parameters ``POT.U2_INIT``, ``POT.U4_INIT`` and ``POT.U6_INIT`` 
 Computation of the Canonical Dimensions
 ---------------------------------------
 
-The file ``canonical_dimensions.py`` can be used to compute the canonical dimensions of the distribution of singular values:
+The command ``frg-canonical-dimensions`` can be used to compute the canonical dimensions of the distribution of singular values:
 
 .. code:: bash
 
-   ./scripts/canonical_dimensions.py \
+   frg-canonical-dimensions \
       --config /path/to/config.yaml
 
 .. note::
@@ -160,11 +154,11 @@ The file ``canonical_dimensions.py`` can be used to compute the canonical dimens
 Computation of the FRG Equations
 --------------------------------
 
-The file ``frg_equations.py`` can be used to compute the functional renormalization group equations:
+The command ``frg-equations`` can be used to compute the functional renormalization group equations:
 
 .. code:: bash
 
-   ./scripts/frg_equations.py \
+   frg-equations \
       --config /path/to/config.yaml
 
 .. note::
@@ -174,12 +168,12 @@ The file ``frg_equations.py`` can be used to compute the functional renormalizat
 Computation of the FRG Equations in Non-trivial Vacuum
 ------------------------------------------------------
 
-The file ``frg_equations_lpa.py`` can be used to compute the functional renormalization group equations in the Local Potential Approximation (LPA) with an expansion around a non trivial vacuum:
+The command ``frg-equations-lpa`` can be used to compute the functional renormalization group equations in the Local Potential Approximation (LPA) with an expansion around a non trivial vacuum:
 
 
 .. code:: bash
 
-   ./scripts/frg_equations_lpa.py \
+   frg-equations-lpa \
       --config /path/to/config.yaml
 
 .. note::
@@ -189,9 +183,9 @@ The file ``frg_equations_lpa.py`` can be used to compute the functional renormal
 Analysis of the Eigenvector Components
 --------------------------------------
 
-The script ``evc_distribution.py`` computes the distribution of the eigenvectors of the correlations:
+The command ``frg-evc-distribution`` computes the distribution of the eigenvectors of the correlations:
 
 .. code:: bash
 
-   ./scripts/evc_distribution.py \
+   frg-evc-distribution \
       --config /path/to/config.yaml
