@@ -626,7 +626,9 @@ class EmpiricalDistribution(Distribution):
 
         # Add the signal to the background
         if snr > 0.0:
-            self.data += snr * resize(X, output_shape=self.data.shape[:2])
+            # Resize the provided signal to match the background data shape.
+            # Using the full shape avoids silent shape/broadcast mismatches.
+            self.data += snr * resize(X, output_shape=self.data.shape)
 
         return self
 
@@ -665,7 +667,7 @@ class EmpiricalDistribution(Distribution):
         .. note::
 
             This is the complete list of eigenvalues (bulk + spikes).
-            You can access the filtered distribution **without** the spikes using the ``self.eigenvalues`` attribute, available after calling the ``self.fit(...)`` method.
+            You can access the filtered distribution **without** the spikes using the ``self.eigenvalues_`` attribute, available after calling the ``self.fit(...)`` method.
 
         Returns
         -------
@@ -676,7 +678,10 @@ class EmpiricalDistribution(Distribution):
 
         # Sort the eigenvalues
         idx = np.argsort(eigenvalues)
-        self.eigenvectors_[:, idx]
+        # Keep eigenvectors aligned with eigenvalues: sorting eigenvalues without
+        # applying the same permutation to eigenvectors would make UV/IR
+        # eigenvector selection incorrect.
+        self.eigenvectors_ = self.eigenvectors_[:, idx]
         return eigenvalues[idx]
 
     def find_spikes(self, eigenvalues: ArrayLike, pow: float = 0.5) -> int:
@@ -695,15 +700,24 @@ class EmpiricalDistribution(Distribution):
         int
             The index of the first spike.
         """
-        dx = len(eigenvalues) ** (-pow)
+        n = len(eigenvalues)
+        if n <= 1:
+            return n
 
-        # Find the index of the beginning of the bulk distribution
-        #
-        #   >>> Going from right to left until the difference is smaller than dx
+        dx = n ** (-pow)
+
+        # Find the index of the beginning of the spike region.
+        # We scan gaps from right to left and count how many consecutive
+        # (diff > dx) we observe at the tail. This is robust to edge cases:
+        # - no spikes at all  -> return n (keep full spectrum)
+        # - tail fully spikes -> return 1 (drop all but the smallest eigenvalue)
         diff = np.diff(eigenvalues)
-        idx = np.argmin((diff > dx)[::-1])  # True if spike, False if bulk
+        tail_spike = (diff > dx)[::-1]
+        if not np.any(tail_spike):
+            return n
 
-        return len(eigenvalues) - int(idx)
+        first_non_spike = np.argmax(~tail_spike) if np.any(~tail_spike) else len(tail_spike)
+        return n - int(first_non_spike)
 
     def _find_pow(self, pow: float, snr: float) -> float:
         """
@@ -789,7 +803,7 @@ class EmpiricalDistribution(Distribution):
         """
         if not self._fitted:
             raise ValueError(
-                "The distribution must be fitted before calling ipdf! Please call ``self.fit()`` first."
+                "The distribution must be fitted before calling pdf! Please call ``self.fit()`` first."
             )
         if not np.isscalar(x):
             return np.vectorize(self.pdf, otypes=[np.float64])(x)
@@ -815,13 +829,17 @@ class EmpiricalDistribution(Distribution):
         """
         if not self._fitted:
             raise ValueError(
-                "The distribution must be fitted before calling ipdf! Please call ``self.fit()`` first."
+                "The distribution must be fitted before calling cdf! Please call ``self.fit()`` first."
             )
         if not np.isscalar(x):
             return np.vectorize(self.cdf, otypes=[np.float64])(x)
 
-        z = np.ravel(x - self.kde.dataset) / self.kde.factor
-        return ndtr(z).mean()
+        # Correct CDF implementation using KDE integration
+        if x <= self.lminus:
+            return 0.0
+        if x >= self.lplus:
+            return 1.0
+        return self.kde.integrate_box_1d(self.lminus, x) / self.norm
 
     def icdf(self, x: float | ArrayLike) -> float | ArrayLike:
         """
@@ -839,7 +857,7 @@ class EmpiricalDistribution(Distribution):
         """
         if not self._fitted:
             raise ValueError(
-                "The distribution must be fitted before calling ipdf! Please call ``self.fit()`` first."
+                "The distribution must be fitted before calling icdf! Please call ``self.fit()`` first."
             )
         if not np.isscalar(x):
             return np.vectorize(self.icdf, otypes=[np.float64])(x)
